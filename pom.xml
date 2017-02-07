@@ -3,34 +3,30 @@
     <groupId>com.microsoft.azure</groupId>
     <artifactId>app-service-java-configure-deployment-sources-for-web-apps</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>ManageWebAppSourceControl</name>
+    <name>ManageWebAppSourceControl.java</name>
     <description></description>
     <url>https://github.com/Azure/app-service-java-configure-deployment-sources-for-web-apps</url>
     <dependencies>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure</artifactId>
-            <version>1.0.0-beta4.1</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-net</groupId>
-            <artifactId>commons-net</artifactId>
-            <version>3.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jgit</groupId>
-            <artifactId>org.eclipse.jgit</artifactId>
-            <version>4.5.0.201609210915-r</version>
+            <version>1.0.0-beta5</version>
         </dependency>
     </dependencies>
     <build>
+        <sourceDirectory>src</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>resources</directory>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.4.0</version>
                 <configuration>
-                    <mainClass>com.microsoft.azure.management.appservice.samples.ManageWebAppSourceControl</mainClass>
+                    <mainClass>com.microsoft.azure.management.appservice.samples.ManageWebAppSourceControl.java</mainClass>
                 </configuration>
             </plugin>
             <plugin>
@@ -58,7 +54,7 @@
                             </descriptorRefs>
                             <archive>
                                 <manifest>
-                                    <mainClass>com.microsoft.azure.management.appservice.samples.ManageWebAppSourceControl</mainClass>
+                                    <mainClass>com.microsoft.azure.management.appservice.samples.ManageWebAppSourceControl.java</mainClass>
                                 </manifest>
                             </archive>
                         </configuration>
