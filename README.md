@@ -4,11 +4,11 @@ platforms: java
 author: jianghaolu
 ---
 
-#Getting Started with Appservice - Manage Web App Source Control - in Java #
+## Getting Started with Appservice - Manage Web App Source Control - in Java ##
 
 
   Azure App Service basic sample for managing web apps.
-   - Create 4 web apps under the same new app service plan:
+   - Create 5 web apps under the same new app service plan:
      - Deploy to 1 using FTP
      - Deploy to 2 using local Git repository
      - Deploy to 3 using a publicly available Git repository
@@ -29,7 +29,7 @@ Set the environment variable `AZURE_AUTH_LOCATION` with the full path for an aut
 
 ## More information ##
 
-[http://azure.com/java] (http://azure.com/java)
+[http://azure.com/java](http://azure.com/java)
 
 If you don't have a Microsoft Azure subscription you can get a FREE trial account [here](http://go.microsoft.com/fwlink/?LinkId=330212)
 
