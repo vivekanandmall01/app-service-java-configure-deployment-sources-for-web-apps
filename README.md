@@ -8,11 +8,13 @@ author: jianghaolu
 
 
   Azure App Service basic sample for managing web apps.
-   - Create 5 web apps under the same new app service plan:
+   - Create 6 web apps under the same new app service plan:
      - Deploy to 1 using FTP
      - Deploy to 2 using local Git repository
      - Deploy to 3 using a publicly available Git repository
      - Deploy to 4 using a GitHub repository with continuous integration
+     - Deploy to 5 using Web deploy
+     - Deploy to 6 using WAR deploy
  
 
 ## Running this Sample ##
