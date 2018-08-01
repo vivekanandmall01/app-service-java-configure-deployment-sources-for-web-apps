@@ -15,6 +15,7 @@ author: jianghaolu
      - Deploy to 4 using a GitHub repository with continuous integration
      - Deploy to 5 using Web deploy
      - Deploy to 6 using WAR deploy
+     - Deploy to 7 using ZIP deploy
  
 
 ## Running this Sample ##
