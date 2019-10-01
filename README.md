@@ -8,7 +8,7 @@ description: "Azure App Service basic sample for managing web apps."
 urlFragment: app-service-java-configure-deployment-sources-for-web-apps
 ---
 
-# Getting Started with Appservice - Manage Web App Source Control - in Java #
+# Manage Web App Source Control in Azure App Service (Java)
 
 
   Azure App Service basic sample for managing web apps.
@@ -28,11 +28,13 @@ To run this sample:
 
 Set the environment variable `AZURE_AUTH_LOCATION` with the full path for an auth file. See [how to create an auth file](https://github.com/Azure/azure-libraries-for-java/blob/master/AUTH.md).
 
-    git clone https://github.com/Azure-Samples/app-service-java-configure-deployment-sources-for-web-apps.git
+```bash
+git clone https://github.com/Azure-Samples/app-service-java-configure-deployment-sources-for-web-apps.git
 
-    cd app-service-java-configure-deployment-sources-for-web-apps
+cd app-service-java-configure-deployment-sources-for-web-apps
 
-    mvn clean compile exec:java
+mvn clean compile exec:java
+```
 
 ## More information ##
 
