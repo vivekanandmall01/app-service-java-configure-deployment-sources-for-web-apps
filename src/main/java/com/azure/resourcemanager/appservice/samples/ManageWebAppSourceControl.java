@@ -1,33 +1,33 @@
-/**
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for
- * license information.
- */
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 
-package com.microsoft.azure.management.appservice.samples;
+package com.azure.resourcemanager.appservice.samples;
 
-import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.appservice.AppServicePlan;
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.management.appservice.PublishingProfile;
-import com.microsoft.azure.management.appservice.RuntimeStack;
-import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.management.resources.fluentcore.utils.SdkContext;
-import com.microsoft.azure.management.samples.Utils;
-import com.microsoft.rest.LogLevel;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
+import com.azure.core.credential.TokenCredential;
+import com.azure.core.management.AzureEnvironment;
+import com.azure.identity.DefaultAzureCredentialBuilder;
+import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.appservice.models.AppServicePlan;
+import com.azure.resourcemanager.appservice.models.JavaVersion;
+import com.azure.resourcemanager.appservice.models.PricingTier;
+import com.azure.resourcemanager.appservice.models.PublishingProfile;
+import com.azure.resourcemanager.appservice.models.RuntimeStack;
+import com.azure.resourcemanager.appservice.models.WebApp;
+import com.azure.resourcemanager.appservice.models.WebContainer;
+import com.azure.core.management.Region;
+import com.azure.core.management.profile.AzureProfile;
+import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils;
+import com.azure.resourcemanager.samples.Utils;
+import com.azure.core.http.policy.HttpLogDetailLevel;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+
 
 /**
  * Azure App Service basic sample for managing web apps.
@@ -42,23 +42,21 @@ import java.util.concurrent.TimeUnit;
  */
 public final class ManageWebAppSourceControl {
 
-    private static OkHttpClient httpClient;
-
     /**
      * Main function which runs the actual sample.
-     * @param azure instance of the azure client
+     * @param azureResourceManager instance of the azure client
      * @return true if sample runs successfully
      */
-    public static boolean runSample(Azure azure) {
+    public static boolean runSample(AzureResourceManager azureResourceManager) throws GitAPIException {
         // New resources
         final String suffix         = ".azurewebsites.net";
-        final String app1Name       = SdkContext.randomResourceName("webapp1-", 20);
-        final String app2Name       = SdkContext.randomResourceName("webapp2-", 20);
-        final String app3Name       = SdkContext.randomResourceName("webapp3-", 20);
-        final String app4Name       = SdkContext.randomResourceName("webapp4-", 20);
-        final String app5Name       = SdkContext.randomResourceName("webapp5-", 20);
-        final String app6Name       = SdkContext.randomResourceName("webapp5-", 20);
-        final String app7Name       = SdkContext.randomResourceName("webapp7-", 20);
+        final String app1Name       = Utils.randomResourceName(azureResourceManager, "webapp1-", 20);
+        final String app2Name       = Utils.randomResourceName(azureResourceManager, "webapp2-", 20);
+        final String app3Name       = Utils.randomResourceName(azureResourceManager, "webapp3-", 20);
+        final String app4Name       = Utils.randomResourceName(azureResourceManager, "webapp4-", 20);
+        final String app5Name       = Utils.randomResourceName(azureResourceManager, "webapp5-", 20);
+        final String app6Name       = Utils.randomResourceName(azureResourceManager, "webapp6-", 20);
+        final String app7Name       = Utils.randomResourceName(azureResourceManager, "webapp7-", 20);
         final String app1Url        = app1Name + suffix;
         final String app2Url        = app2Name + suffix;
         final String app3Url        = app3Name + suffix;
@@ -66,8 +64,8 @@ public final class ManageWebAppSourceControl {
         final String app5Url        = app5Name + suffix;
         final String app6Url        = app6Name + suffix;
         final String app7Url        = app7Name + suffix;
-        final String rgName         = SdkContext.randomResourceName("rg1NEMV_", 24);
-        final String rg7Name         = SdkContext.randomResourceName("rg7NEMV_", 24);
+        final String rgName         = Utils.randomResourceName(azureResourceManager, "rg1NEMV_", 24);
+        final String rg7Name         = Utils.randomResourceName(azureResourceManager, "rg7NEMV_", 24);
         try {
 
 
@@ -76,7 +74,7 @@ public final class ManageWebAppSourceControl {
 
             System.out.println("Creating web app " + app1Name + " in resource group " + rgName + "...");
 
-            WebApp app1 = azure.webApps().define(app1Name)
+            WebApp app1 = azureResourceManager.webApps().define(app1Name)
                     .withRegion(Region.US_WEST)
                     .withNewResourceGroup(rgName)
                     .withNewWindowsPlan(PricingTier.STANDARD_S1)
@@ -92,24 +90,24 @@ public final class ManageWebAppSourceControl {
 
             System.out.println("Deploying helloworld.war to " + app1Name + " through FTP...");
 
-            Utils.uploadFileToWebApp(app1.getPublishingProfile(), "helloworld.war", ManageWebAppSourceControl.class.getResourceAsStream("/helloworld.war"));
+            Utils.uploadFileViaFtp(app1.getPublishingProfile(), "helloworld.war", ManageWebAppSourceControl.class.getResourceAsStream("/helloworld.war"));
 
             System.out.println("Deployment helloworld.war to web app " + app1.name() + " completed");
             Utils.print(app1);
 
             // warm up
             System.out.println("Warming up " + app1Url + "/helloworld...");
-            curl("http://" + app1Url + "/helloworld");
-            SdkContext.sleep(5000);
+            Utils.sendGetRequest("http://" + app1Url + "/helloworld/");
+            ResourceManagerUtils.sleep(Duration.ofSeconds(5));
             System.out.println("CURLing " + app1Url + "/helloworld...");
-            System.out.println(curl("http://" + app1Url + "/helloworld"));
+            System.out.println(Utils.sendGetRequest("http://" + app1Url + "/helloworld/"));
 
             //============================================================
             // Create a second web app with local git source control
 
             System.out.println("Creating another web app " + app2Name + " in resource group " + rgName + "...");
-            AppServicePlan plan = azure.appServices().appServicePlans().getById(app1.appServicePlanId());
-            WebApp app2 = azure.webApps().define(app2Name)
+            AppServicePlan plan = azureResourceManager.appServicePlans().getById(app1.appServicePlanId());
+            WebApp app2 = azureResourceManager.webApps().define(app2Name)
                     .withExistingWindowsPlan(plan)
                     .withExistingResourceGroup(rgName)
                     .withLocalGitSourceControl()
@@ -144,16 +142,16 @@ public final class ManageWebAppSourceControl {
 
             // warm up
             System.out.println("Warming up " + app2Url + "/helloworld...");
-            curl("http://" + app2Url + "/helloworld");
-            SdkContext.sleep(5000);
+            Utils.sendGetRequest("http://" + app2Url + "/helloworld/");
+            ResourceManagerUtils.sleep(Duration.ofSeconds(5));
             System.out.println("CURLing " + app2Url + "/helloworld...");
-            System.out.println(curl("http://" + app2Url + "/helloworld"));
+            System.out.println(Utils.sendGetRequest("http://" + app2Url + "/helloworld/"));
 
             //============================================================
             // Create a 3rd web app with a public GitHub repo in Azure-Samples
 
             System.out.println("Creating another web app " + app3Name + "...");
-            WebApp app3 = azure.webApps().define(app3Name)
+            WebApp app3 = azureResourceManager.webApps().define(app3Name)
                     .withExistingWindowsPlan(plan)
                     .withNewResourceGroup(rgName)
                     .defineSourceControl()
@@ -167,16 +165,16 @@ public final class ManageWebAppSourceControl {
 
             // warm up
             System.out.println("Warming up " + app3Url + "...");
-            curl("http://" + app3Url);
-            SdkContext.sleep(5000);
+            Utils.sendGetRequest("http://" + app3Url);
+            ResourceManagerUtils.sleep(Duration.ofSeconds(5));
             System.out.println("CURLing " + app3Url + "...");
-            System.out.println(curl("http://" + app3Url));
+            System.out.println(Utils.sendGetRequest("http://" + app3Url));
 
             //============================================================
             // Create a 4th web app with a personal GitHub repo and turn on continuous integration
 
             System.out.println("Creating another web app " + app4Name + "...");
-            WebApp app4 = azure.webApps()
+            WebApp app4 = azureResourceManager.webApps()
                     .define(app4Name)
                     .withExistingWindowsPlan(plan)
                     .withExistingResourceGroup(rgName)
@@ -193,17 +191,17 @@ public final class ManageWebAppSourceControl {
 
             // warm up
             System.out.println("Warming up " + app4Url + "...");
-            curl("http://" + app4Url);
-            SdkContext.sleep(5000);
+            Utils.sendGetRequest("http://" + app4Url);
+            ResourceManagerUtils.sleep(Duration.ofSeconds(5));
             System.out.println("CURLing " + app4Url + "...");
-            System.out.println(curl("http://" + app4Url));
+            System.out.println(Utils.sendGetRequest("http://" + app4Url));
 
             //============================================================
             // Create a 5th web app with the existing app service plan
 
             System.out.println("Creating web app " + app5Name + " in resource group " + rgName + "...");
 
-            WebApp app5 = azure.webApps().define(app5Name)
+            WebApp app5 = azureResourceManager.webApps().define(app5Name)
                     .withExistingWindowsPlan(plan)
                     .withExistingResourceGroup(rgName)
                     .withJavaVersion(JavaVersion.JAVA_8_NEWEST)
@@ -219,14 +217,14 @@ public final class ManageWebAppSourceControl {
             System.out.println("Deploying helloworld.war to " + app5Name + " through web deploy...");
 
             app5.deploy()
-                    .withPackageUri("https://github.com/Azure/azure-libraries-for-java/raw/master/azure-samples/src/main/resources/helloworld.zip")
+                    .withPackageUri("https://raw.githubusercontent.com/Azure/azure-sdk-for-java/master/sdk/resourcemanager/azure-resourcemanager-samples/src/main/resources/helloworld.zip")
                     .withExistingDeploymentsDeleted(true)
                     .execute();
 
             System.out.println("Deploying coffeeshop.war to " + app5Name + " through web deploy...");
 
             app5.deploy()
-                    .withPackageUri("https://github.com/Azure/azure-libraries-for-java/raw/master/azure-samples/src/main/resources/coffeeshop.zip")
+                    .withPackageUri("https://raw.githubusercontent.com/Azure/azure-sdk-for-java/master/sdk/resourcemanager/azure-resourcemanager-samples/src/main/resources/coffeeshop.zip")
                     .withExistingDeploymentsDeleted(false)
                     .execute();
 
@@ -235,19 +233,19 @@ public final class ManageWebAppSourceControl {
 
             // warm up
             System.out.println("Warming up " + app5Url + "/helloworld...");
-            curl("http://" + app5Url + "/helloworld");
-            SdkContext.sleep(5000);
+            Utils.sendGetRequest("http://" + app5Url + "/helloworld/");
+            ResourceManagerUtils.sleep(Duration.ofSeconds(5));
             System.out.println("CURLing " + app5Url + "/helloworld...");
-            System.out.println(curl("http://" + app5Url + "/helloworld"));
+            System.out.println(Utils.sendGetRequest("http://" + app5Url + "/helloworld/"));
             System.out.println("CURLing " + app5Url + "/coffeeshop...");
-            System.out.println(curl("http://" + app5Url + "/coffeeshop"));
+            System.out.println(Utils.sendGetRequest("http://" + app5Url + "/coffeeshop/"));
 
             //============================================================
             // Create a 6th web app with the existing app service plan
 
             System.out.println("Creating web app " + app6Name + " in resource group " + rgName + "...");
 
-            WebApp app6 = azure.webApps().define(app6Name)
+            WebApp app6 = azureResourceManager.webApps().define(app6Name)
                     .withExistingWindowsPlan(plan)
                     .withExistingResourceGroup(rgName)
                     .withJavaVersion(JavaVersion.JAVA_8_NEWEST)
@@ -276,12 +274,12 @@ public final class ManageWebAppSourceControl {
 
             // warm up
             System.out.println("Warming up " + app6Url + "/helloworld...");
-            curl("http://" + app6Url + "/helloworld");
-            SdkContext.sleep(5000);
+            Utils.sendGetRequest("http://" + app6Url + "/helloworld/");
+            ResourceManagerUtils.sleep(Duration.ofSeconds(5));
             System.out.println("CURLing " + app6Url + "/helloworld...");
-            System.out.println(curl("http://" + app6Url + "/helloworld"));
+            System.out.println(Utils.sendGetRequest("http://" + app6Url + "/helloworld/"));
             System.out.println("CURLing " + app6Url + "/coffeeshop...");
-            System.out.println(curl("http://" + app6Url + "/coffeeshop"));
+            System.out.println(Utils.sendGetRequest("http://" + app6Url + "/coffeeshop/"));
 
             //============================================================
             // Create a 7th web app with the existing app service plan
@@ -290,7 +288,7 @@ public final class ManageWebAppSourceControl {
 
             System.out.println("Creating web app " + app7Name + " in resource group " + rgName + "...");
 
-            WebApp app7 = azure.webApps().define(app7Name)
+            WebApp app7 = azureResourceManager.webApps().define(app7Name)
                     .withRegion(Region.US_WEST)
                     .withNewResourceGroup(rg7Name)
                     .withNewLinuxPlan(PricingTier.STANDARD_S2)
@@ -319,16 +317,13 @@ public final class ManageWebAppSourceControl {
 
             // warm up
             System.out.println("Warming up " + app7Url);
-            curl("http://" + app7Url);
+            Utils.sendGetRequest("http://" + app7Url);
             return true;
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
         } finally {
             try {
                 System.out.println("Deleting Resource Group: " + rgName);
-                azure.resourceGroups().beginDeleteByName(rgName);
-                azure.resourceGroups().beginDeleteByName(rg7Name);
+                azureResourceManager.resourceGroups().beginDeleteByName(rgName);
+                azureResourceManager.resourceGroups().beginDeleteByName(rg7Name);
                 System.out.println("Deleted Resource Group: " + rgName);
             } catch (NullPointerException npe) {
                 System.out.println("Did not create any resources in Azure. No clean up is necessary");
@@ -336,7 +331,6 @@ public final class ManageWebAppSourceControl {
                 g.printStackTrace();
             }
         }
-        return false;
     }
     /**
      * Main entry point.
@@ -348,34 +342,24 @@ public final class ManageWebAppSourceControl {
             //=============================================================
             // Authenticate
 
-            final File credFile = new File(System.getenv("AZURE_AUTH_LOCATION"));
+            final AzureProfile profile = new AzureProfile(AzureEnvironment.AZURE);
+            final TokenCredential credential = new DefaultAzureCredentialBuilder()
+                .authorityHost(profile.getEnvironment().getActiveDirectoryEndpoint())
+                .build();
 
-            Azure azure = Azure
-                    .configure()
-                    .withLogLevel(LogLevel.BASIC)
-                    .authenticate(credFile)
-                    .withDefaultSubscription();
+            AzureResourceManager azureResourceManager = AzureResourceManager
+                .configure()
+                .withLogLevel(HttpLogDetailLevel.BASIC)
+                .authenticate(credential, profile)
+                .withDefaultSubscription();
 
             // Print selected subscription
-            System.out.println("Selected subscription: " + azure.subscriptionId());
+            System.out.println("Selected subscription: " + azureResourceManager.subscriptionId());
 
-            runSample(azure);
+            runSample(azureResourceManager);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    private static String curl(String url) {
-        Request request = new Request.Builder().url(url).get().build();
-        try {
-            return httpClient.newCall(request).execute().body().string();
-        } catch (IOException e) {
-            return null;
-        }
-    }
-
-    static {
-        httpClient = new OkHttpClient.Builder().readTimeout(1, TimeUnit.MINUTES).build();
     }
 }
