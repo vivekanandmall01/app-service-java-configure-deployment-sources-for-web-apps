@@ -49,5 +49,5 @@ jobs:
         with:
           app-name: 'vivek1041'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8EC119FBF214474DBFB4EDC6D0B46785 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D82EC8F82DE040F180B93D52BAA23226 }}
           package: '*.jar'
